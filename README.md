@@ -27,7 +27,7 @@ MVPでは以下を実装します。
 ## 使用技術
 
 | 分類 | 技術 |
-|---|---|
+| --- | --- |
 | フロントエンド | Next.js |
 | 言語 | TypeScript |
 | UI | Tailwind CSS |
@@ -104,7 +104,7 @@ http://localhost:3000
 設計資料は `docs/` に保存します。
 
 | ファイル | 内容 |
-|---|---|
+| --- | --- |
 | `00_project_plan.md` | プロジェクト計画 |
 | `01_requirements.md` | 要件定義 |
 | `02_technology_selection.md` | 技術選定 |
@@ -134,7 +134,7 @@ http://localhost:3000
 ## 環境変数
 
 | 変数名 | 内容 |
-|---|---|
+| --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Anon public key |
 
