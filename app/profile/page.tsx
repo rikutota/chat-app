@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 
 type AppUser = {
   id: string;
@@ -32,9 +34,30 @@ type ApiResponse =
  * この画面が表示できれば、Googleログインと users テーブルの紐づけが確認できる。
  */
 export default function ProfilePage() {
+  const router = useRouter();
+
   const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+
+  /**
+   * ログアウト処理
+   * 
+   * Supabase Authのセッションを削除することで
+   * /api/me　では未ログインとして扱われるようになる
+   */
+  async function handleLogout(){
+    const supabase = createBrowserSupabaseClient();
+
+    const { error } = await supabase.auth.signOut();
+
+    if(error){
+      setErrorMessage('ログアウトに失敗しました．');
+      return;
+    }
+
+    router.push('/login');
+  }
 
   useEffect(() => {
     async function fetchCurrentUser() {
@@ -43,6 +66,15 @@ export default function ProfilePage() {
         const result = (await response.json()) as ApiResponse;
 
         if (!result.success) {
+          /**
+           * 未ログインの場合はプロフィール画面を表示せず，
+           * ログイン画面へ戻す．
+           */
+          if(result.error.code === 'UNAUTHORIZED'){
+            router.push('/login');
+            return;
+          }
+
           setErrorMessage(result.error.message);
           return;
         }
@@ -115,6 +147,13 @@ export default function ProfilePage() {
           <p>アプリ内ユーザーID:</p>
           <p className="mt-1 break-all font-mono">{user?.id}</p>
         </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="mt-8 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
+          >
+            ログアウト
+          </button>
       </div>
     </main>
   );
