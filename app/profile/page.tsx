@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createBrowserSupabaseClient } from '@/lib/supabase/client';
+import { Header } from '@/components/layout/Header';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type AppUser = {
   id: string;
@@ -38,31 +38,12 @@ export default function ProfilePage() {
 
   const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
-
-  /**
-   * ログアウト処理
-   * 
-   * Supabase Authのセッションを削除することで
-   * /api/me　では未ログインとして扱われるようになる
-   */
-  async function handleLogout(){
-    const supabase = createBrowserSupabaseClient();
-
-    const { error } = await supabase.auth.signOut();
-
-    if(error){
-      setErrorMessage('ログアウトに失敗しました．');
-      return;
-    }
-
-    router.push('/login');
-  }
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     async function fetchCurrentUser() {
       try {
-        const response = await fetch('/api/me');
+        const response = await fetch("/api/me");
         const result = (await response.json()) as ApiResponse;
 
         if (!result.success) {
@@ -70,8 +51,8 @@ export default function ProfilePage() {
            * 未ログインの場合はプロフィール画面を表示せず，
            * ログイン画面へ戻す．
            */
-          if(result.error.code === 'UNAUTHORIZED'){
-            router.push('/login');
+          if (result.error.code === "UNAUTHORIZED") {
+            router.push("/login");
             return;
           }
 
@@ -81,7 +62,7 @@ export default function ProfilePage() {
 
         setUser(result.data);
       } catch {
-        setErrorMessage('ユーザー情報の取得に失敗しました。');
+        setErrorMessage("ユーザー情報の取得に失敗しました。");
       } finally {
         setIsLoading(false);
       }
@@ -115,46 +96,43 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-2xl rounded-xl bg-white p-8 shadow">
-        <h1 className="text-2xl font-bold text-gray-900">プロフィール</h1>
+    <>
+      <Header />
 
-        <div className="mt-8 flex items-center gap-4">
-          {user?.avatar_url ? (
-            <img
-              src={user.avatar_url}
-              alt={`${user.display_name}のアイコン`}
-              className="h-16 w-16 rounded-full"
-            />
-          ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200 text-xl font-bold text-gray-600">
-              {user?.display_name.slice(0, 1)}
+      <main className="min-h-screen bg-gray-50 p-8">
+        <div className="mx-auto max-w-2xl rounded-xl bg-white p-8 shadow">
+          <h1 className="text-2xl font-bold text-gray-900">プロフィール</h1>
+
+          <div className="mt-8 flex items-center gap-4">
+            {user?.avatar_url ? (
+              <img
+                src={user.avatar_url}
+                alt={`${user.display_name}のアイコン`}
+                className="h-16 w-16 rounded-full"
+              />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-200 text-xl font-bold text-gray-600">
+                {user?.display_name.slice(0, 1)}
+              </div>
+            )}
+
+            <div>
+              <p className="text-lg font-semibold text-gray-900">
+                {user?.display_name}
+              </p>
+
+              <p className="mt-1 text-sm text-gray-600">
+                {user?.email ?? "メールアドレス未設定"}
+              </p>
             </div>
-          )}
+          </div>
 
-          <div>
-            <p className="text-lg font-semibold text-gray-900">
-              {user?.display_name}
-            </p>
-
-            <p className="mt-1 text-sm text-gray-600">
-              {user?.email ?? 'メールアドレス未設定'}
-            </p>
+          <div className="mt-8 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
+            <p>アプリ内ユーザーID:</p>
+            <p className="mt-1 break-all font-mono">{user?.id}</p>
           </div>
         </div>
-
-        <div className="mt-8 rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
-          <p>アプリ内ユーザーID:</p>
-          <p className="mt-1 break-all font-mono">{user?.id}</p>
-        </div>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="mt-8 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
-          >
-            ログアウト
-          </button>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
