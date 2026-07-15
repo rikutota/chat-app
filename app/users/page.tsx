@@ -107,7 +107,7 @@ export default function UsersPage() {
 
       <main className="min-h-screen bg-gray-50 p-8">
         <div className="mx-auto max-w-3xl rounded-xl bg-white p-8 shadow">
-          <h1 className="text-2xl font-bold text-gray-900">ユーザー一覧</h1>
+          <h1 className="text-2xl font-bold text-gray-900">チャット相手</h1>
 
           <p className="mt-3 text-sm text-gray-600">
             チャットを開始する相手を選択します。
