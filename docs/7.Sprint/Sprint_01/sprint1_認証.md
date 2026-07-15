@@ -25,7 +25,7 @@ Sprint 1 の目的は、ユーザーが外部認証でログインし、アプ�
 ## 3. 作るもの
 
 | 種類 | 成果物 |
-|---|---|
+| --- | --- |
 | Supabase設定 | Google OAuth設定 |
 | DB | usersテーブル |
 | API | `GET /api/me` |
@@ -206,7 +206,7 @@ app/profile/page.tsx
 ## 6. タスク一覧
 
 | ID | タスク | 優先度 | 完了条件 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | S1-01 | Google OAuth設定 | High | Googleログインが有効 |
 | S1-02 | usersテーブル作成 | High | usersが作成済み |
 | S1-03 | `/api/me` 実装 | High | ログイン中ユーザーを返せる |
