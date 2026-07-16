@@ -25,11 +25,26 @@ type ApiResponse =
       };
     };
 
+type CreateDirectRoomResponse =
+  | {
+      success: true;
+      data: {
+        roomId: string;
+        created: boolean;
+      };
+    }
+  | {
+      success: false;
+      error: {
+        code: string;
+        message: string;
+      };
+    };
+
 /**
- * ユーザー一覧画面。
+ * チャット相手一覧画面。
  *
  * 1対1チャットを開始する相手を選ぶための画面。
- * ここではまだチャットルーム作成は行わず、ユーザー一覧表示までを確認する。
  */
 export default function UsersPage() {
   const router = useRouter();
@@ -37,6 +52,9 @@ export default function UsersPage() {
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [startingChatUserId, setStartingChatUserId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     async function fetchUsers() {
@@ -45,10 +63,6 @@ export default function UsersPage() {
         const result = (await response.json()) as ApiResponse;
 
         if (!result.success) {
-          /**
-           * 未ログインの場合は、ユーザー一覧を見せずにログイン画面へ戻す。
-           * ユーザー一覧はチャット開始の入口なので、認証済みユーザーだけに見せる。
-           */
           if (result.error.code === 'UNAUTHORIZED') {
             router.push('/login');
             return;
@@ -60,7 +74,7 @@ export default function UsersPage() {
 
         setUsers(result.data);
       } catch {
-        setErrorMessage('ユーザー一覧の取得に失敗しました。');
+        setErrorMessage('チャット相手一覧の取得に失敗しました。');
       } finally {
         setIsLoading(false);
       }
@@ -68,6 +82,44 @@ export default function UsersPage() {
 
     fetchUsers();
   }, [router]);
+
+  /**
+   * 選択した相手との1対1チャットルームを作成、または既存ルームを取得する。
+   */
+  async function handleStartChat(partnerUserId: string) {
+    setErrorMessage('');
+    setStartingChatUserId(partnerUserId);
+
+    try {
+      const response = await fetch('/api/chat-rooms/direct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          partnerUserId,
+        }),
+      });
+
+      const result = (await response.json()) as CreateDirectRoomResponse;
+
+      if (!result.success) {
+        if (result.error.code === 'UNAUTHORIZED') {
+          router.push('/login');
+          return;
+        }
+
+        setErrorMessage(result.error.message);
+        return;
+      }
+
+      router.push(`/chats/${result.data.roomId}`);
+    } catch {
+      setErrorMessage('チャットルームの作成に失敗しました。');
+    } finally {
+      setStartingChatUserId(null);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -90,7 +142,9 @@ export default function UsersPage() {
 
         <main className="min-h-screen bg-gray-50 p-8">
           <div className="mx-auto max-w-3xl rounded-xl bg-white p-8 shadow">
-            <h1 className="text-2xl font-bold text-gray-900">ユーザー一覧</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              チャット相手
+            </h1>
 
             <p className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
               {errorMessage}
@@ -115,7 +169,7 @@ export default function UsersPage() {
 
           {users.length === 0 ? (
             <div className="mt-8 rounded-lg bg-gray-50 p-6 text-sm text-gray-600">
-              まだ他のユーザーがいません。別のGoogleアカウントでログインすると、
+              まだチャットできる相手がいません。別のGoogleアカウントでログインすると、
               ここに表示されます。
             </div>
           ) : (
@@ -151,9 +205,13 @@ export default function UsersPage() {
 
                   <button
                     type="button"
-                    className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700"
+                    onClick={() => handleStartChat(user.id)}
+                    disabled={startingChatUserId === user.id}
+                    className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                   >
-                    チャット開始
+                    {startingChatUserId === user.id
+                      ? '作成中...'
+                      : 'チャット開始'}
                   </button>
                 </li>
               ))}
